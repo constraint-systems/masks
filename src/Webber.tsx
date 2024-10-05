@@ -39,7 +39,6 @@ export function Webber() {
   useEffect(() => {
     canvasRefA.current = canvasRef.current;
   }, [canvasRef]);
-    
 
   useEffect(() => {
     async function main() {
@@ -53,8 +52,7 @@ export function Webber() {
 
         segmentRef.current = await ImageSegmenter.createFromOptions(vision, {
           baseOptions: {
-            modelAssetPath:
-              "selfie_multiclass_256x256.tflite",
+            modelAssetPath: "selfie_multiclass_256x256.tflite",
             delegate: "GPU",
           },
           outputCategoryMask: true,
@@ -68,11 +66,22 @@ export function Webber() {
         bufferCanvasRef.current.width = video.videoWidth;
         bufferCanvasRef.current.height = video.videoHeight;
 
+        const check = localStorage.getItem("dataUrl");
+        if (check) {
+          const img = new Image();
+          img.src = check;
+          img.onload = () => {
+            const ctx = canvasRef.current?.getContext("2d");
+            ctx?.drawImage(img, 0, 0);
+          };
+        }
+
         const ctx = canvas.getContext("2d")!;
 
         const btx = bufferCanvasRef.current.getContext("2d")!;
 
         let lastVideoTime = -1;
+        let saveCounter = 0;
         function callbackForVideo(result: ImageSegmenterResult) {
           if (video && video.currentTime !== lastVideoTime) {
             btx.drawImage(
@@ -82,12 +91,13 @@ export function Webber() {
               canvasRef.current!.width,
               canvasRef.current!.height,
             );
-            let imageData = btx.getImageData(
+            let imageDataContainer = btx.getImageData(
               0,
               0,
               video.videoWidth,
               video.videoHeight,
-            ).data;
+            );
+            let imageData = imageDataContainer.data;
             const mask: Number[] = result.categoryMask.getAsFloat32Array();
             let j = 0;
             // 0: background, 1: hair, 2: body, 3: face, 4: face
@@ -112,13 +122,7 @@ export function Webber() {
               }
               j += 4;
             }
-            const uint8Array = new Uint8ClampedArray(imageData.buffer);
-            const dataNew = new ImageData(
-              uint8Array,
-              video.videoWidth,
-              video.videoHeight,
-            );
-            btx.putImageData(dataNew, 0, 0);
+            btx.putImageData(imageDataContainer, 0, 0);
             ctx.globalAlpha = opacityRef.current;
             if (webcamFlippedRef.current.x && webcamFlippedRef.current.y) {
               ctx.setTransform(
@@ -143,6 +147,12 @@ export function Webber() {
             }
           }
           lastVideoTime = video.currentTime;
+          if (saveCounter > 10) {
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+            localStorage.setItem("dataUrl", dataUrl);
+            saveCounter = 0;
+          }
+          saveCounter++;
           animationRef.current = requestAnimationFrame(predictWebcam);
         }
 

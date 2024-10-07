@@ -210,7 +210,8 @@ export function Mask() {
       };
     }
 
-    const tasksCanvas = new OffscreenCanvas(1, 1);
+    const tasksCanvas = document.createElement("canvas");
+    // const tasksCanvas = new OffscreenCanvas(1, 1);
     const createImageSegmenter = async () => {
       const audio = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",

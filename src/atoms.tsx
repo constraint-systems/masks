@@ -11,9 +11,9 @@ export const WebcamFlippedAtom = atomWithStorage("webcamFlipped", {
 export const VideoLoadedAtom = atom(false);
 export const OpacityAtom = atomWithStorage("opacity", 1);
 export const defaultCategorySettings = {
-  background: true,
-  face: false,
-  hair: true,
+  background: false,
+  face: true,
+  hair: false,
   body: false,
   clothes: false,
 };

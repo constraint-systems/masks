@@ -32,20 +32,16 @@ export function Mask() {
   const opacityRef = useRef(opacity);
   opacityRef.current = opacity;
 
+  const [fps] = useAtom(FpsAtom);
+  const fpsRef = useRef(fps);
+  fpsRef.current = fps;
+
   const [webcamFlipped] = useAtom(WebcamFlippedAtom);
   const webcamFlippedRef = useRef(webcamFlipped);
   webcamFlippedRef.current = webcamFlipped;
 
   const imageSegmenterRef = useRef<ImageSegmenter | null>(null);
-
   const animationRef = useRef<number | null>(null);
-
-  const [fps] = useAtom(FpsAtom);
-  const fpsRef = useRef(fps);
-  fpsRef.current = fps;
-
-  const width = 640;
-  const height = 480;
 
   useEffect(() => {
     const createShaderProgram = (gl: WebGL2RenderingContext) => {
@@ -213,9 +209,7 @@ export function Mask() {
     const tasksCanvas = document.createElement("canvas");
     // const tasksCanvas = new OffscreenCanvas(1, 1);
     const createImageSegmenter = async () => {
-      const audio = await FilesetResolver.forVisionTasks(
-        "/wasm",
-      );
+      const audio = await FilesetResolver.forVisionTasks("/wasm");
 
       imageSegmenterRef.current = await ImageSegmenter.createFromOptions(
         audio,
@@ -243,7 +237,7 @@ export function Mask() {
       const maskImage = await toImageBitmap(result.categoryMask);
 
       if (webcamFlippedRef.current.x || webcamFlippedRef.current.y) {
-        applyTransform(canvasCtx);
+        applyTransform(video!, canvasCtx);
       }
 
       canvasCtx.globalCompositeOperation = "destination-atop";
@@ -273,7 +267,7 @@ export function Mask() {
         return;
       }
       const image = await createImageBitmap(video!);
-    
+
       // Start segmenting the stream.
       imageSegmenterRef.current.segmentForVideo(image, startTimeMs, (result) =>
         callbackForVideo(result, image),
@@ -317,13 +311,13 @@ export function Mask() {
     }
   }, [video, videoLoaded, selectedDeviceId]);
 
-  function applyTransform(ctx: CanvasRenderingContext2D) {
+  function applyTransform(video: HTMLVideoElement, ctx: CanvasRenderingContext2D) {
     if (webcamFlippedRef.current.x && webcamFlippedRef.current.y) {
-      ctx.setTransform(-1, 0, 0, -1, width, height);
+      ctx.setTransform(-1, 0, 0, -1, video.videoWidth, video.videoHeight);
     } else if (webcamFlippedRef.current.x) {
-      ctx.setTransform(-1, 0, 0, 1, width, 0);
+      ctx.setTransform(-1, 0, 0, 1, video.videoWidth, 0);
     } else if (webcamFlippedRef.current.y) {
-      ctx.setTransform(1, 0, 0, -1, 0, height);
+      ctx.setTransform(1, 0, 0, -1, 0, video.videoHeight);
     }
   }
 

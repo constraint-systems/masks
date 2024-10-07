@@ -72,17 +72,17 @@ Error generating stack: `+o.message+`
     varying vec2 texCoords;
     uniform sampler2D textureSampler;
     void main() {
-      int maskVal = int(texture2D(textureSampler, texCoords).r * 255.0);
+      float maskVal = texture2D(textureSampler, texCoords).r * 255.0;
 
       vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
 
       // Determine transparency based on the mask value and user preferences
       if (
-          (maskVal == 0 && showBackground) ||
-          (maskVal == 1 && showHair) ||
-          (maskVal == 3 && showFace) ||
-          (maskVal == 2 && showBody) ||
-          (maskVal == 4 && showClothes)
+          (maskVal > -0.5 && maskVal < 0.5 && showBackground) ||
+          (maskVal > 0.5 && maskVal < 1.5 && showHair) ||
+          (maskVal > 2.5 && maskVal < 3.5 && showFace) ||
+          (maskVal > 1.5 && maskVal < 2.5 && showBody) ||
+          (maskVal > 3.5 && maskVal < 4.5 && showClothes)
       ) {
           // Make the fragment transparent
           color.a = 1.0 - opacity;

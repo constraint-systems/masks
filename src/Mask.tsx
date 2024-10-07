@@ -22,7 +22,7 @@ export function Mask() {
   const [videoLoaded] = useAtom(VideoLoadedAtom);
   const [showCategorySettings] = useAtom(ShowCategoriesAtom);
   const [selectedDeviceId] = useAtom(SelectedDeviceIdAtom);
-  const [loadingSegmenter, setLoadingSegmenter] = useAtom(LoadingSegmenterAtom);
+  const [, setLoadingSegmenter] = useAtom(LoadingSegmenterAtom);
 
   const [canvasRefA] = useAtom(CanvasRefAtom);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -239,14 +239,14 @@ export function Mask() {
         applyTransform(video!, canvasCtx);
       }
 
-      canvasCtx.globalCompositeOperation = "destination-atop";
-      canvasCtx.drawImage(
-        maskImage,
-        0,
-        0,
-        video!.videoWidth,
-        video!.videoHeight,
-      );
+      // canvasCtx.globalCompositeOperation = "destination-atop";
+      // canvasCtx.drawImage(
+      //   maskImage,
+      //   0,
+      //   0,
+      //   video!.videoWidth,
+      //   video!.videoHeight,
+      // );
       canvasCtx.drawImage(image, 0, 0, video!.videoWidth, video!.videoHeight);
 
       if (webcamFlippedRef.current.x || webcamFlippedRef.current.y) {

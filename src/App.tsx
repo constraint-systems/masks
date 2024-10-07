@@ -8,14 +8,16 @@ import {
   OpacityAtom,
   WebcamFlippedAtom,
   CanvasRefAtom,
+  SelectedDeviceIdAtom,
+  FpsAtom,
 } from "./atoms";
 import { useEffect, useRef, useState } from "react";
-import { Webber } from "./Webber";
+import { Mask } from "./Mask";
 
 function App() {
   return (
     <div className="w-full relative h-[100dvh] overflow-hidden pointer-events-none">
-      <Webber />
+      <Mask />
       <Settings />
     </div>
   );
@@ -27,13 +29,14 @@ function Settings() {
   const [showSettings, setShowSettings] = useAtom(ShowSettingsAtom);
   const [showCategories, setShowCategories] = useAtom(ShowCategoriesAtom);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
+  const [selectedDeviceId, setSelectedDeviceId] = useAtom(SelectedDeviceIdAtom);
   const [, setVideo] = useAtom(VideoAtom);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [, setVideoLoaded] = useAtom(VideoLoadedAtom);
   const [opacity, setOpacity] = useAtom(OpacityAtom);
   const [webcamFlipped, setWebcamFlipped] = useAtom(WebcamFlippedAtom);
   const [canvasRefA] = useAtom(CanvasRefAtom);
+  const [fps, setFps] = useAtom(FpsAtom);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -44,7 +47,10 @@ function Settings() {
       );
       setDevices(videoDevices);
       if (videoDevices.length > 0) {
-        setSelectedDeviceId(videoDevices[0].deviceId);
+        const check = localStorage.getItem("selectedDeviceId");
+        if (!check) {
+          setSelectedDeviceId(videoDevices[0].deviceId);
+        }
       }
     };
     getDevices();
@@ -66,7 +72,12 @@ function Settings() {
       }
     };
     if (selectedDeviceId) {
-      getStream(selectedDeviceId);
+      try {
+        getStream(selectedDeviceId);
+      } catch (error) {
+        console.error(error);
+        setSelectedDeviceId(devices[0].deviceId);
+      }
     }
   }, [selectedDeviceId]);
 
@@ -79,9 +90,9 @@ function Settings() {
         className="opacity-0 absolute"
       />
       {showSettings ? (
-        <div className="w-[280px] pointer-events-auto flex bg-neutral-800 bg-opacity-60 flex-col gap-1 border border-neutral-700 px-3 py-3 select-none">
+        <div className="w-[280px] pointer-events-auto flex bg-neutral-800 bg-opacity-60 flex-col gap-1 px-3 py-3 select-none">
           <div className="flex justify-between">
-            <div>About</div>
+            <div>Masks</div>
             <button
               className="px-3 py-1 -mt-1 bg-neutral-800 hover:bg-neutral-700 rounded-md"
               onClick={() => setShowSettings(false)}
@@ -130,23 +141,8 @@ function Settings() {
               Flip {webcamFlipped.y ? "▲" : "▼"}
             </button>
           </div>
-          <div className="px-1 gap-2 text-sm flex items-center pt-2 pb-1">
-            <div>Opacity:</div>
-            <div className="w-full flex items-center">
-              <input
-                className="w-full"
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={opacity}
-                onChange={(e) => setOpacity(parseFloat(e.target.value))}
-              />
-            </div>
-            <div>{opacity.toFixed(1)}</div>
-          </div>
           <div className="py-0.5 px-1">
-            <div>Show</div>
+            <div>Render</div>
             {categoryKeys.map((categoryKey) => (
               <label
                 key={categoryKey}
@@ -168,6 +164,41 @@ function Settings() {
               </label>
             ))}
           </div>
+          <div className="px-1 gap-2 text-sm flex items-center pt-1 pb-1">
+            <div>Opacity:</div>
+            <div className="w-full flex items-center">
+              <input
+                className="w-full"
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={opacity}
+                onChange={(e) => setOpacity(parseFloat(e.target.value))}
+              />
+            </div>
+            <div>{opacity.toFixed(1)}</div>
+          </div>
+          <div className="px-1 gap-2 text-sm flex items-center pt-1 pb-2">
+            <div>FPS:</div>
+            {[1, 5, 10, 30, 60].map((fpsValue) => {
+              const isActive = fps === fpsValue;
+              return (
+                <label
+                  key={fpsValue}
+                  className={`${isActive ? "bg-neutral-700" : "bg-neutral-800"} w-full text-center hover:bg-neutral-700 px-2 py-1 rounded-lg cursor-pointer`}
+                >
+                  <input
+                    className="hidden"
+                    type="radio"
+                    checked={fps === fpsValue}
+                    onChange={() => setFps(fpsValue)}
+                  />
+                  {fpsValue}
+                </label>
+              );
+            })}
+          </div>
           <div className="flex text-sm gap-1">
             <button
               className="w-1/2 bg-neutral-800 hover:bg-neutral-700 py-1 rounded-lg"
@@ -184,14 +215,29 @@ function Settings() {
             >
               Clear
             </button>
-            <button className="w-1/2 bg-neutral-800 hover:bg-neutral-700 py-1 rounded-lg">
+            <button
+              className="w-1/2 bg-neutral-800 hover:bg-neutral-700 py-1 rounded-lg"
+              onClick={() => {
+                const dataUrl = canvasRefA.current?.toDataURL(
+                  "image/jpeg",
+                  0.9,
+                );
+                if (dataUrl) {
+                  const a = document.createElement("a");
+                  a.href = dataUrl;
+                  const timestamp = new Date().toISOString();
+                  a.download = `mask-${timestamp}.jpg`;
+                  a.click();
+                }
+              }}
+            >
               Download
             </button>
           </div>
         </div>
       ) : (
         <button
-          className="select-none bg-neutral-800 px-3 py-1 rounded-md hover:bg-neutral-700 pointer-events-auto"
+          className="select-none bg-neutral-800 px-3 py-1 mr-3 mt-2 rounded-md hover:bg-neutral-700 pointer-events-auto"
           onClick={() => setShowSettings(true)}
         >
           ▽

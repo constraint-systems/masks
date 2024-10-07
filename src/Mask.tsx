@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import {
   CanvasRefAtom,
   FpsAtom,
+  LoadingSegmenterAtom,
   OpacityAtom,
   SelectedDeviceIdAtom,
   ShowCategoriesAtom,
@@ -21,6 +22,7 @@ export function Mask() {
   const [videoLoaded] = useAtom(VideoLoadedAtom);
   const [showCategorySettings] = useAtom(ShowCategoriesAtom);
   const [selectedDeviceId] = useAtom(SelectedDeviceIdAtom);
+  const [loadingSegmenter, setLoadingSegmenter] = useAtom(LoadingSegmenterAtom);
 
   const [canvasRefA] = useAtom(CanvasRefAtom);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -209,22 +211,19 @@ export function Mask() {
     const tasksCanvas = document.createElement("canvas");
     // const tasksCanvas = new OffscreenCanvas(1, 1);
     const createImageSegmenter = async () => {
-      const audio = await FilesetResolver.forVisionTasks("/wasm");
+      const wasm = await FilesetResolver.forVisionTasks("/wasm");
 
-      imageSegmenterRef.current = await ImageSegmenter.createFromOptions(
-        audio,
-        {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite",
-            delegate: "GPU",
-          },
-          canvas: tasksCanvas,
-          runningMode: "VIDEO",
-          outputConfidenceMasks: false,
-          outputCategoryMask: true,
+      imageSegmenterRef.current = await ImageSegmenter.createFromOptions(wasm, {
+        baseOptions: {
+          modelAssetPath:
+            "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite",
+          delegate: "GPU",
         },
-      );
+        canvas: tasksCanvas,
+        runningMode: "VIDEO",
+        outputConfidenceMasks: false,
+        outputCategoryMask: true,
+      });
     };
     const toImageBitmap = createCopyTextureToCanvas(tasksCanvas);
 
@@ -301,7 +300,9 @@ export function Mask() {
         imageSegmenterRef.current.close();
       }
 
+      setLoadingSegmenter(true);
       await createImageSegmenter();
+      setLoadingSegmenter(false);
 
       predictWebcam();
     }
@@ -311,7 +312,10 @@ export function Mask() {
     }
   }, [video, videoLoaded, selectedDeviceId]);
 
-  function applyTransform(video: HTMLVideoElement, ctx: CanvasRenderingContext2D) {
+  function applyTransform(
+    video: HTMLVideoElement,
+    ctx: CanvasRenderingContext2D,
+  ) {
     if (webcamFlippedRef.current.x && webcamFlippedRef.current.y) {
       ctx.setTransform(-1, 0, 0, -1, video.videoWidth, video.videoHeight);
     } else if (webcamFlippedRef.current.x) {

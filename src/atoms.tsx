@@ -19,3 +19,4 @@ export const FpsAtom = atomWithStorage("fps",10);
 export const CanvasRefAtom = atom<{ current: HTMLCanvasElement | null }>({
   current: null,
 });
+export const LoadingSegmenterAtom = atom(false);

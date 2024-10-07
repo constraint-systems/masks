@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: "DepartureMono";
-  src: url("DepartureMono-Regular.woff") format("woff");
+  src: url("/DepartureMono-Regular.woff") format("woff");
 }
 
 html,

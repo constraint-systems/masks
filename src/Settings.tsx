@@ -75,6 +75,7 @@ export function Settings() {
         ref={videoRef}
         autoPlay={true}
         muted={true}
+        playsInline={true}
         className="opacity-0 absolute"
       />
       {showSettings ? (

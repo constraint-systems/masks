@@ -239,14 +239,14 @@ export function Mask() {
         applyTransform(video!, canvasCtx);
       }
 
-      // canvasCtx.globalCompositeOperation = "destination-atop";
-      // canvasCtx.drawImage(
-      //   maskImage,
-      //   0,
-      //   0,
-      //   video!.videoWidth,
-      //   video!.videoHeight,
-      // );
+      canvasCtx.globalCompositeOperation = "destination-atop";
+      canvasCtx.drawImage(
+        maskImage,
+        0,
+        0,
+        video!.videoWidth,
+        video!.videoHeight,
+      );
       canvasCtx.drawImage(image, 0, 0, video!.videoWidth, video!.videoHeight);
 
       if (webcamFlippedRef.current.x || webcamFlippedRef.current.y) {

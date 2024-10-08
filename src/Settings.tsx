@@ -28,17 +28,22 @@ export function Settings() {
 
   useEffect(() => {
     const getDevices = async () => {
-      await navigator.mediaDevices.getUserMedia({ video: true });
-      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = deviceInfos.filter(
-        (device) => device.kind === "videoinput",
-      );
-      setDevices(videoDevices);
-      if (videoDevices.length > 0) {
-        const check = localStorage.getItem("selectedDeviceId");
-        if (!check) {
-          setSelectedDeviceId(videoDevices[0].deviceId);
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = deviceInfos.filter(
+          (device) => device.kind === "videoinput",
+        );
+        setDevices(videoDevices);
+        if (videoDevices.length > 0) {
+          const check = localStorage.getItem("selectedDeviceId");
+          const deviceIds = videoDevices.map((device) => device.deviceId);
+          if (!check || !deviceIds.includes(check)) {
+            setSelectedDeviceId(videoDevices[0].deviceId);
+          }
         }
+      } catch (error) {
+        console.error(error);
       }
     };
     getDevices();

@@ -1,0 +1,4 @@
+- add line about constraint systems
+- link to dev post
+- write dev post on garden
+- make gif

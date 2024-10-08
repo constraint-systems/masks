@@ -29,7 +29,11 @@ export function Settings() {
   useEffect(() => {
     const getDevices = async () => {
       try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
+        await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: "user",
+          },
+        });
         const deviceInfos = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = deviceInfos.filter(
           (device) => device.kind === "videoinput",

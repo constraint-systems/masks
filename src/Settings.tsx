@@ -69,6 +69,54 @@ export function Settings() {
     }
   }, [selectedDeviceId]);
 
+  const cropperRef = useRef(document.createElement("canvas"));
+
+  function handleDownload() {
+    if (canvasRefA.current) {
+      cropperRef.current.width = window.innerWidth;
+      cropperRef.current.height = window.innerHeight;
+
+      const scale = Math.max(
+        window.innerWidth / canvasRefA.current.width,
+        window.innerHeight / canvasRefA.current.height,
+      );
+
+      const scaledWidth = Math.round(canvasRefA.current.width * scale);
+      const scaledHeight = Math.round(canvasRefA.current.height * scale);
+
+      const offsetX = Math.floor((window.innerWidth - scaledWidth) / 2);
+      const offsetY = Math.floor((window.innerHeight - scaledHeight) / 2);
+
+      const crtx = cropperRef.current.getContext("2d")!;
+      crtx.drawImage(
+        canvasRefA.current,
+        0,
+        0,
+        canvasRefA.current.width,
+        canvasRefA.current.height,
+        offsetX,
+        offsetY,
+        scaledWidth,
+        scaledHeight,
+      );
+
+      const dataUrl = cropperRef.current.toDataURL("image/jpeg", 0.9);
+      if (dataUrl) {
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        const timestamp = new Date().toISOString();
+        a.download = `mask-${timestamp}.jpg`;
+        a.click();
+      }
+    }
+  }
+
+  function handleClear() {
+    canvasRefA.current
+      ?.getContext("2d")
+      ?.clearRect(0, 0, canvasRefA.current.width, canvasRefA.current.height);
+  }
+
   return (
     <div className="absolute right-0 top-0">
       <video
@@ -79,11 +127,11 @@ export function Settings() {
         className="opacity-0 absolute"
       />
       {showSettings ? (
-        <div className="w-[280px] pointer-events-auto flex bg-neutral-800 bg-opacity-60 flex-col gap-1 px-3 py-3 select-none">
+        <div className="max-w-[300px] w-full pointer-events-auto flex bg-neutral-800 bg-opacity-60 flex-col gap-1 px-3 py-3 select-none">
           <div className="flex justify-between">
             <div>Masks</div>
             <button
-              className="px-3 py-1 -mt-1 bg-neutral-800 hover:bg-neutral-700 rounded-md"
+              className="px-5 py-1 -mt-1 bg-neutral-800 hover:bg-neutral-700 rounded-md"
               onClick={() => setShowSettings(false)}
             >
               &times;
@@ -99,7 +147,10 @@ export function Settings() {
             <select
               value={selectedDeviceId}
               className="overflow-hidden w-full border-none focus:outline-none px-1 py-1"
-              onChange={(e) => setSelectedDeviceId(e.target.value)}
+              onChange={(e) => {
+                setVideoLoaded(false);
+                setSelectedDeviceId(e.target.value);
+              }}
             >
               {devices.map((device) => (
                 <option key={device.deviceId} value={device.deviceId}>
@@ -191,46 +242,35 @@ export function Settings() {
           <div className="flex text-sm gap-1">
             <button
               className="w-1/2 bg-neutral-800 hover:bg-neutral-700 py-1 rounded-lg"
-              onClick={() => {
-                canvasRefA.current
-                  ?.getContext("2d")
-                  ?.clearRect(
-                    0,
-                    0,
-                    canvasRefA.current.width,
-                    canvasRefA.current.height,
-                  );
-              }}
+              onClick={handleClear}
             >
               Clear
             </button>
             <button
               className="w-1/2 bg-neutral-800 hover:bg-neutral-700 py-1 rounded-lg"
-              onClick={() => {
-                const dataUrl = canvasRefA.current?.toDataURL(
-                  "image/jpeg",
-                  0.9,
-                );
-                if (dataUrl) {
-                  const a = document.createElement("a");
-                  a.href = dataUrl;
-                  const timestamp = new Date().toISOString();
-                  a.download = `mask-${timestamp}.jpg`;
-                  a.click();
-                }
-              }}
+              onClick={handleDownload}
             >
               Download
             </button>
           </div>
         </div>
       ) : (
-        <button
-          className="select-none bg-neutral-800 px-3 py-1 mr-3 mt-2 rounded-md hover:bg-neutral-700 pointer-events-auto"
-          onClick={() => setShowSettings(true)}
-        >
-          ▽
-        </button>
+        <div className="flex gap-2 mt-2 mr-3">
+          <button
+            title="Download"
+            className="select-none bg-neutral-800 px-5 py-1 rounded-md hover:bg-neutral-700 pointer-events-auto"
+            onClick={handleDownload}
+          >
+            ↓
+          </button>
+          <button
+            title="Show settings"
+            className="select-none bg-neutral-800 px-5 py-1 rounded-md hover:bg-neutral-700 pointer-events-auto"
+            onClick={() => setShowSettings(true)}
+          >
+            …
+          </button>
+        </div>
       )}
     </div>
   );

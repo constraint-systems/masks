@@ -5,8 +5,8 @@ import { defaultCategorySettings } from "./consts";
 export const ShowSettingsAtom = atomWithStorage("showSettings", true);
 export const SelectedDeviceIdAtom = atomWithStorage("selectedDeviceId", "");
 export const VideoAtom = atom<HTMLVideoElement | null>(null);
-export const WebcamFlippedAtom = atomWithStorage("webcamFlipped", {
-  x: false,
+export const WebcamFlippedAtom = atomWithStorage("webcamFlipped1", {
+  x: true,
   y: false,
 });
 export const VideoLoadedAtom = atom(false);

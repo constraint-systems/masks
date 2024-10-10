@@ -6,6 +6,7 @@ import {
   OpacityAtom,
   SelectedDeviceIdAtom,
   ShowCategoriesAtom,
+  ShowSettingsAtom,
   VideoAtom,
   VideoLoadedAtom,
   WebcamFlippedAtom,
@@ -22,6 +23,7 @@ export function Mask() {
   const [videoLoaded] = useAtom(VideoLoadedAtom);
   const [showCategorySettings] = useAtom(ShowCategoriesAtom);
   const [selectedDeviceId] = useAtom(SelectedDeviceIdAtom);
+  const [, setShowSettings] = useAtom(ShowSettingsAtom);
   const [, setLoadingSegmenter] = useAtom(LoadingSegmenterAtom);
 
   const [canvasRefA] = useAtom(CanvasRefAtom);
@@ -332,7 +334,7 @@ export function Mask() {
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-auto" onClick={() => setShowSettings(false)}>
       <canvas ref={canvasRef} className="w-full h-full object-cover" />
     </div>
   );

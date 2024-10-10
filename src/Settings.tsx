@@ -262,6 +262,28 @@ export function Settings() {
               Download
             </button>
           </div>
+          <div className="py-1">
+            <div className="text-sm">
+              A{" "}
+              <a
+                target="_blank"
+                className="underline"
+                href="https://constraint.systems"
+              >
+                Constraint Systems
+              </a>{" "}
+              project
+            </div>
+            <div className="text-sm pt-1">
+              <a
+                target="_blank"
+                className="underline"
+                href="https://garden.grantcuster.com/2024-10-09-18-45-25-Masks/"
+              >
+                Read the dev notes
+              </a>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="flex gap-2 mt-2 mr-3">

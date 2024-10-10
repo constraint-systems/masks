@@ -218,7 +218,7 @@ export function Mask() {
       imageSegmenterRef.current = await ImageSegmenter.createFromOptions(wasm, {
         baseOptions: {
           modelAssetPath:
-            "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite",
+            "selfie_multiclass_256x256.tflite",
           delegate: "GPU",
         },
         canvas: tasksCanvas,
